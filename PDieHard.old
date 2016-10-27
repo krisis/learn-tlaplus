@@ -1,0 +1,66 @@
+------------------------------ MODULE PDieHard ------------------------------
+EXTENDS Integers
+Min(m, n) == IF (m < n) THEN m ELSE n
+
+(***************************************************************************
+--algorithm PDieHard {
+    variables big = 0, small = 0;
+    {
+       while (TRUE) {
+        either big := 5
+        or     small := 3
+        or     big := 0
+        or     small := 0
+        or     with (poured = Min(big+small, 5) - big)
+               { big := big + poured;
+                 small := small - poured
+               }
+        or     with (poured = Min(big+small, 3) - small)
+               { big := big - poured;
+                 small := small + poured
+               }
+        }
+    }
+}
+ ***************************************************************************)
+\* BEGIN TRANSLATION
+VARIABLES big, small, pc
+
+vars == << big, small, pc >>
+
+Init == (* Global variables *)
+        /\ big = 0
+        /\ small = 0
+        /\ pc = "Lbl_1"
+
+Lbl_1 == /\ pc = "Lbl_1"
+         /\ \/ /\ big' = 5
+               /\ small' = small
+            \/ /\ small' = 3
+               /\ big' = big
+            \/ /\ big' = 0
+               /\ small' = small
+            \/ /\ small' = 0
+               /\ big' = big
+            \/ /\ LET poured == Min(big+small, 5) - big IN
+                    /\ big' = big + poured
+                    /\ small' = small - poured
+            \/ /\ LET poured == Min(big+small, 3) - small IN
+                    /\ big' = big - poured
+                    /\ small' = small + poured
+         /\ pc' = "Done"
+
+Next == Lbl_1
+           \/ (* Disjunct to prevent deadlock on termination *)
+              (pc = "Done" /\ UNCHANGED vars)
+
+Spec == Init /\ [][Next]_vars
+
+Termination == <>(pc = "Done")
+
+\* END TRANSLATION
+
+=============================================================================
+\* Modification History
+\* Last modified Thu Oct 27 11:13:08 IST 2016 by kp
+\* Created Thu Oct 27 11:06:20 IST 2016 by kp
